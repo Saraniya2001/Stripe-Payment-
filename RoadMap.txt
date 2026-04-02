@@ -1,0 +1,219 @@
+🪜 FULL ROADMAP (Mentor Plan)
+
+We’ll go in this order:
+
+🟢 Phase 1 — Backend Foundation
+Project setup (TypeScript + Express)
+Folder structure (very important)
+Environment variables
+MongoDB connection
+🟡 Phase 2 — Authentication System
+User model (MongoDB)
+Register API
+Password hashing (bcrypt)
+Login API
+Cookies (store user info safely)
+Logout (clear cookie)
+🔵 Phase 3 — Frontend (React + TS)
+Create UI (Register/Login)
+Connect API
+Store user session
+Dashboard + profile
+
+
+🪜 FRONTEND ROADMAP
+🟢 Phase 1 — Setup
+Create React app (TypeScript)
+Install dependencies
+Setup folder structure
+🟡 Phase 2 — Auth Pages
+Register page (form)
+Login page (form)
+Connect backend API
+🔵 Phase 3 — Dashboard
+Navbar with profile avatar
+Fetch user profile
+Show dropdown/details
+
+
+
+
+
+
+🧭 FULL SUBSCRIPTION SYSTEM ROADMAP
+
+We’ll break your documentation into logical phases 👇
+
+🟣 PHASE 1 — Stripe Setup (Foundation)
+🪜 Steps:
+Create Stripe account
+Get API keys:
+Secret key
+Publishable key
+Install Stripe in backend:
+npm install stripe
+Add to .env:
+STRIPE_SECRET_KEY=your_secret_key
+STRIPE_WEBHOOK_SECRET=your_webhook_secret
+
+🟣 PHASE 2 — Create Subscription Plans
+You need:
+Starter Monthly
+Starter Yearly
+Pro Monthly
+Pro Yearly
+🪜 Steps:
+
+👉 In Stripe Dashboard:
+Create Products
+Create Prices for each plan
+
+Example:
+Plan	Type
+Starter	Monthly
+Starter	Yearly
+Pro	Monthly
+Pro	Yearly
+
+👉 Each price gives you:
+price_id
+⚠️ VERY IMPORTANT → You will use this in backend
+
+
+🟣 PHASE 3 — Update Database
+🪜 Modify User Model
+
+📄 User.ts
+
+Add:
+
+subscription: {
+  type: String, // starter / pro
+  default: "none",
+},
+subscriptionStatus: {
+  type: String, // active, canceled
+  default: "none",
+},
+stripeCustomerId: String,
+stripeSubscriptionId: String,
+
+
+🟣 PHASE 4 — Create Subscription API
+🪜 Backend Endpoint
+👉 Create:
+POST /api/subscription/create
+🧠 What it does:
+Get logged-in user
+Create Stripe customer (if not exists)
+Create checkout session
+Return session URL
+💡 Flow
+Frontend → request subscription
+Backend → Stripe checkout session
+Frontend → redirect to Stripe
+
+
+🟣 PHASE 5 — Stripe Checkout
+🪜 Backend Code (Concept)
+const session = await stripe.checkout.sessions.create({
+  payment_method_types: ["card"],
+  mode: "subscription",
+  customer: customerId,
+  line_items: [
+    {
+      price: priceId,
+      quantity: 1,
+    },
+  ],
+  success_url: "http://localhost:3000/success",
+  cancel_url: "http://localhost:3000/cancel",
+});
+
+
+🟣 PHASE 6 — Webhook (VERY IMPORTANT 🔥)
+
+👉 This is the heart of subscription system
+
+🧠 Why Webhook?
+
+Stripe → tells your backend:
+
+Payment success ✅
+Subscription created ✅
+Subscription canceled ❌
+🪜 Steps:
+Create endpoint:
+POST /api/webhook
+Verify Stripe signature
+Handle events:
+🎯 Required Events
+checkout.session.completed
+invoice.payment_succeeded
+customer.subscription.deleted
+🧠 What You Do Inside
+On success:
+Update user:
+- subscription = starter/pro
+- status = active
+On cancel:
+Update:
+- status = canceled
+🟣 PHASE 7 — Subscription Management APIs
+🪜 Create endpoints:
+1️⃣ Cancel subscription
+POST /api/subscription/cancel
+2️⃣ Upgrade / Change plan
+POST /api/subscription/update
+
+👉 Use Stripe API:
+
+stripe.subscriptions.update(...)
+🟣 PHASE 8 — Frontend Integration
+🪜 Pages to Create:
+1️⃣ Subscription Page
+Show plans
+Button → Subscribe
+2️⃣ Success Page
+/payment-success
+3️⃣ Cancel Page
+/payment-cancel
+🧠 Flow:
+Click Subscribe → call backend → redirect to Stripe → return to success page
+🟣 PHASE 9 — Email Notifications
+🪜 Setup NodeMailer
+npm install nodemailer
+🪜 Use Gmail SMTP
+service: "gmail"
+auth: {
+  user: "your_email",
+  pass: "app_password"
+}
+📧 Send Emails:
+When:
+Subscription success ✅
+Payment failed ❌
+Subscription canceled ⚠️
+🟣 PHASE 10 — Final Features Checklist
+✅ User can:
+Subscribe
+Cancel subscription
+Upgrade plan
+✅ System:
+Updates DB via webhook
+Sends email notifications
+Shows success/cancel pages
+🧠 FINAL ARCHITECTURE
+Frontend → Backend → Stripe
+                     ↓
+                  Webhook
+                     ↓
+                  Database
+                     ↓
+                  Email
+🚀 HOW WE WILL BUILD THIS (Mentor Plan)
+
+We will NOT do everything at once ❌
+
+
+stripe listen --forward-to localhost:5000/api/webhook
